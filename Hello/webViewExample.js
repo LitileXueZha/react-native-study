@@ -27,6 +27,7 @@ export default class webViewExample extends Component{
     }
   }
   render(){
+    console.log('Information Here');
     return <View style={ css.container }>
       { !this.state.code ?
         <WebView style={ css.container } source={{ uri: url }} onnavigationstatechange={this.skipPage}/>

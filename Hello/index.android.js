@@ -54,6 +54,7 @@ import {
 // import TouchableComponent from './touchableComponent';
 // import ImageComponent from './imageComponent';
 // import WebViewComponent from './webViewComponent';
-import WebViewExample from './webViewExample';
+// import WebViewExample from './webViewExample';
+import ListComponents from './listComponents';
 
-AppRegistry.registerComponent('Hello', () => WebViewExample);
+AppRegistry.registerComponent('Hello', () => ListComponents);
