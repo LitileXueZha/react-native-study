@@ -15,19 +15,30 @@ import {
   KeyboardAvoidingView,
   ListView,
   Modal,
+  Picker,
+  ProgressBarAndroid,
+  RefreshControl,
+  ScrollView,
+  SectionList,
+  Slider,
+  StatusBar,
   TextInput,
   TouchableHighlight,
-  ScrollView,
   PixelRatio
 } from 'react-native';
+import { StackNavigator, TabNavigator } from 'react-navigation';
 
-export default class listComponents extends Component{
+class HomeScreen extends Component{
   constructor(props){
     super(props);
     this.state = {
-      modalVisibility: false
+      modalVisibility: false,
+      language: '选择'
     }
   }
+  static navigationOptions = {
+    title: 'Home'
+  };
   showSomething(){
     alert('帅气涛，你吃饭了吗？');
   }
@@ -43,7 +54,17 @@ export default class listComponents extends Component{
       </View>
     );
 
-    return <ScrollView style={ css.container }>
+    return <ScrollView
+      showVerticalScrollIndicator={true}
+      style={ css.container }
+      refreshControl={
+        <RefreshControl
+          refreshing={false}  //  是否保留上个页面
+          colors={['red', 'blue']}  //  每次转圈的颜色
+          enabled={true}  //  下拉时显示
+        />
+      }
+    >
       <View style={ css.header }>
         <Text>下面是React Native里的组件s</Text>
       </View>
@@ -159,9 +180,72 @@ export default class listComponents extends Component{
           <Text style={{ color: 'white' }}>显示模态框</Text>
         </TouchableHighlight>
       </View>
+
+      {/*  Picker，选择器，即下拉列表  */}
+      <View>
+        <Picker
+          mode={'dropdown'}
+          prompt="选择"
+          selectedValue={ this.state.language }
+          onValueChange={ (lang) => this.setState({ language: lang }) }
+        >
+          <Picker.Item label='Html' value="html"/>
+          <Picker.Item label='JavaScript' value="js"/>
+          <Picker.Item label='Css' value="css"/>
+        </Picker>
+      </View>
+
+      {/*  ProgressBarAndroid，圆形进度条、已废弃，用activityIndicator  */}
+      <View style={ css.item }>
+        {/*<ProgressBarAndroid progress={0.5}/>*/}
+      </View>
+
+      {/*  SectionList，列表  */}
+      <View>
+        <SectionList
+          sections={[
+            { data: [{ title: 'ef', key: '11' },{ title: '345', key: '12' },{ title: '2w34', key: '13' }], key: 1 },
+            { data: [{ title: 'sae', key: '21' },{ title: 'weqr', key: '22' },{ title: 'da', key: '23' }], key: 2 },
+            { data: [{ title: 'dcv', key: '31' },{ title: 'dsaf', key: '32' },{ title: 'xa3e', key: '33' }], key: 3 },
+          ]}
+          renderSectionHeader={ ({section}) => <Text>{section.key}</Text> }
+          renderItem={ ({item}) => <Text>{item.title}</Text> }
+        />
+      </View>
+
+      {/*  Slider，滑块，原生组件，4.3上贼丑  */}
+      <View style={ css.item }>
+        <Slider
+          style={{ width: '100%' }}
+          // thumbTintColor={'red'}
+          thumbImage={ require('./pic/轮播图2-幻想.jpg') }
+          trackImage={ require('./pic/轮播图2-幻想.jpg') }
+        />
+      </View>
+
+      {/*  StatusBar */}
+      <View style={ css.item }>
+        <StatusBar barStyle={'light-content'}/>
+      </View>
+
     </ScrollView>;
   }
 }
+class ChatScreen extends Component{
+  static navigationOptions = {
+    title: 'Chat'
+  };
+  render(){
+    return (
+      <Text>This is a page!</Text>
+    );
+  }
+}
+const listComponents = TabNavigator({
+  Home: { screen: HomeScreen },
+  Chat: { screen: ChatScreen }
+});
+module.export.listComponents = listComponents;
 const css = StyleSheet.create({
   container: {
     padding: 5
