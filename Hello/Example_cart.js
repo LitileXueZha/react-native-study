@@ -11,8 +11,10 @@ import {
   Text,
   Image,
   Button,
-  TouchableHighlight,
-  TouchableOpacity
+  TouchableOpacity,
+  TouchableNativeFeedback,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 
 //  水果：图片信息，单价，数量
@@ -91,7 +93,50 @@ const css = StyleSheet.create({
   btnContainer: {
     padding: 5,
     paddingTop: 20
-  }
+  },
+  listItem: {
+    display: 'flex',
+    flexDirection: 'row',
+    height: 100,
+    padding: 10,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  listItemImg: {
+    width: 100,
+    height: 80,
+  },
+  listItemInfo: {
+    flex: 1,
+    height: 80,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  listItemText: {
+    textAlign: 'right',
+    flex: 1,
+    lineHeight: 20,
+  },
+  pay: {
+    margin: 10,
+    height: 40,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#330066',
+    borderRadius: 2,
+  },
+  clear: {
+    margin: 10,
+    marginTop: 0,
+    height: 40,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: 2,
+  },
 });
 
 //  一个水果组件，展示一种水果
@@ -206,14 +251,111 @@ class ListComponent extends Component{
 
 //  购物车组件
 class CartComponent extends Component{
+  constructor(){
+    super();
+    this.state = {
+      data: [],
+      totalMoney: 0,
+    };
+  }
   static navigationOptions = {
     title: '水果列表'
   };
+
+  componentDidMount(){
+    AsyncStorage.getAllKeys((err, keys) => {
+      if(err){
+        alert('读取数据出错！请重启App');
+      }
+      AsyncStorage.multiGet(keys, (err, result) => {
+        if(err){
+          alert('读取出错！');
+        }
+        let arr = [], arrIdOld = [];
+        for(let i in result){
+          //  一个对象数据，给它添加数量信息;必需解析，不然只是字符串，从而体现了跟localstorage只能保存字符串的缺点
+          let item = JSON.parse(result[i][1]);
+          if( !(arrIdOld.includes(item.id)) ){
+            item.num = 0;
+            arr.push(item);
+          }
+          arrIdOld.push(item.id);
+        }
+        for(let i in arr){
+          let id = arr[i].id,
+              ar = Array.from(arrIdOld);
+          arr[i].num = arrIdOld.length - ar.join('').split(id).join('').split('').length;
+          this.state.totalMoney += arr[i].price * arr[i].num;
+        }
+        this.setState({
+          data: arr,
+          totalMoney: this.state.totalMoney.toFixed(2)
+        });
+      });
+    });
+  }
+
   render(){
     return (
-      <Text>这是购物车。。。。</Text>
+      <ScrollView
+        refreshControl={
+          <RefreshControl
+            refreshing={ false }
+            enabled={ true }
+            colors={['red', 'green', 'blue']}
+            // progressBackgroundColor="#330066"
+          />
+        }
+      >
+        <FlatList
+          data={ this.state.data }
+          keyExtractor={ (item, index) => item.id }
+          renderItem={ this._renderItem }
+        />
+        <TouchableNativeFeedback
+          // background={ TouchableNativeFeedback.Ripple('#000000') }
+        >
+          <View style={ css.pay }>
+            <Text style={{ color: '#ffffff' }}>支付，共{ this.state.totalMoney }元</Text>
+          </View>
+        </TouchableNativeFeedback>
+        <TouchableNativeFeedback
+          // background={ TouchableNativeFeedback.SelectableBackground() }
+          onPress={ () => this.clearCart }
+        >
+          <View style={ css.clear }>
+            <Text style={{ color: '#330066' }}>清空购物车</Text>
+          </View>
+        </TouchableNativeFeedback>
+      </ScrollView>
     );
   }
+
+  _renderItem = ({ item }) => (
+    <View style={ css.listItem }>
+      <Image source={ item.url } style={ css.listItemImg } resizeMode="contain"/>
+      <View style={ css.listItemInfo }>
+        <Text style={ [ css.listItemText, { flex: 2 }] }>{ item.title + item.desc }</Text>
+        <Text style={ css.listItemText }>x { item.num }</Text>
+        <Text style={ css.listItemText }>￥{ item.price * item.num }</Text>
+      </View>
+    </View>
+  );
+
+  clearCart(){
+    AsyncStorage.clear((err) => {
+      if(!err){
+        this.setState({
+          data: 0,
+          totalMoney: 0
+        });
+        alert("购物车已清空！");
+      } else{
+        alert(err);
+      }
+    });
+  }
+
 }
 
 //  导出组件，本来想导出StackNavigator()的变量，但是提示undefined
