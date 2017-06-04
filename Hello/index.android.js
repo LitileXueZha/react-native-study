@@ -57,9 +57,11 @@ const styles = StyleSheet.create({
 // import ViewPagerAndroidComponent from './ViewPagerAndroidComponent';
 // import WebViewComponent from './webViewComponent';
 // import WebViewExample from './webViewExample';
-import { ListComponent, CartComponent } from './Example_cart';
-const SampleApp = StackNavigator({
-  Home: { screen: ListComponent },
-  Cart: { screen: CartComponent }
-});
-AppRegistry.registerComponent('Hello', () => SampleApp);
+// import { ListComponent, CartComponent } from './Example_cart';
+// const SampleApp = StackNavigator({
+//   Home: { screen: ListComponent },
+//   Cart: { screen: CartComponent }
+// });
+import APIComponent from './APIs';
+// import SearchComponent from './searchExample'
+AppRegistry.registerComponent('Hello', () => APIComponent);
