@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import {
   AppState,
   Alert,
+  Animated,
   Button,
   Image,
   View,
@@ -18,7 +19,12 @@ import {
   Vibration,
   CameraRoll,
   TouchableNativeFeedback,
+  TouchableOpacity,
   NetInfo,
+  Share,
+  DatePickerAndroid,
+  TimePickerAndroid,
+  ToastAndroid,
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
@@ -31,6 +37,10 @@ export default class APIComponent extends Component{
     this.state = {
       currentAppState: AppState.currentState,
       photos: [],
+      width: 10,
+      fadeAnim: new Animated.Value(1),
+      pickTime: '14:05',
+      pickDate: '2017年6月5日',
     };
   }
 
@@ -66,9 +76,15 @@ export default class APIComponent extends Component{
         source={{ uri: photos[i] }}
         key={ i }
         resizeMode="cover"
-        style={{ width: "50%", height: 200 }}
+        style={{ width: "50%", height: 200, borderRadius: 2 }}
       />);
     }
+
+    // setImmediate,setTimeout,setInterval
+    setImmediate(function () {
+      // alert('我擦嘞');
+    });
+
     return (
       <ScrollView>
         <Text>当前appState：{ this.state.currentAppState }</Text>
@@ -124,6 +140,51 @@ export default class APIComponent extends Component{
               onPress={ () => this.fetchPostData() }
             />
           </View>
+        </View>
+        <View style={ css.apiItem }>
+          <Text>使用requestAnimationFrame()写的一个进度条</Text>
+          <View style={ css.progressContainer }>
+            <View style={ [css.progress, { width: this.state.width }] }>{}</View>
+          </View>
+        </View>
+        <View style={ css.apiItem }>
+          <Text>Animated API创建动画</Text>
+          <View onPress={ () => this.startFadeAnim() }>
+            <Animated.View
+              style={ [css.fadeAnimElement, { opacity: this.state.fadeAnim }] }
+            >{}</Animated.View>
+          </View>
+        </View>
+        <View style={ css.apiItem }>
+          <Text>测试Share API</Text>
+          <TouchableNativeFeedback onPress={ () => this.shareSomething() }>
+            <View style={ css.shareContainer }>
+              <Text style={ css.shareText }>分享</Text>
+              <Icon size={20} name="share-alt" style={ css.shareIcon }/>
+            </View>
+          </TouchableNativeFeedback>
+        </View>
+        <View style={ css.apiItem }>
+          <Text>测试DatePickerAndroid、TimePickerAndroid这两个API</Text>
+          <TouchableOpacity
+            onPress={ () => this.showPicker("date") }
+            activeOpacity={0.5}
+            style={ css.pickerItem }
+          >
+            <Text>DatePickerAndroid，字面理解，取一个日期</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={ () => this.showPicker("time") }
+            activeOpacity={0.5}
+            style={ css.pickerItem }
+          >
+            <Text>TimePickerAndroid，明显取一个时间喽</Text>
+          </TouchableOpacity>
+          <Text>日期：{this.state.pickDate +'\n'}时间：{ this.state.pickTime }</Text>
+        </View>
+        <View style={ css.apiItem }>
+          <Text>测试ToastAndroid API</Text>
+          <Button title="显示通知" onPress={ () => this.showToast() }/>
         </View>
       </ScrollView>
     );
@@ -185,7 +246,74 @@ export default class APIComponent extends Component{
       .catch((err) => alert(err));
   }
 
+  // 开始动画效果
+  startFadeAnim(){
+    alert(1);
+    Animated.timing(
+      this.state.fadeAnim,
+      {toValue: 0, duration: 2000},
+    ).start();  // 注意启动
+  }
+
+  // 分享某些东西
+  shareSomething(){
+    Share.share({
+      title: '分享到...',
+      message: '这是XXX的分享链接，你将分享到XXX地方，感谢你对XXX的支持'
+    }, {
+      dialogTitle: '我这里改动了'
+    })
+      .then((res) => {
+        if(res.action === Share.sharedAction){
+          alert("已共享!");
+        } else {
+          alert("未共享！");
+        }
+      })
+      .catch((err) => {
+        alert(err);
+    });
+  }
+
+  // 显示选择器
+  async showPicker(type){
+    try {
+      if(type === 'date'){
+        // 调用日期选择器
+        const {action, year, month, day} = await DatePickerAndroid.open({
+          date: new Date(2017,5,5)
+        });
+        if(action !== DatePickerAndroid.dismissedAction){
+          this.setState({
+            pickDate: `${year}年${month+1}月${day}日`
+          });
+        }
+      } else if(type === 'time'){
+        // 调用时间选择器
+        const {action, hour, minute} = await TimePickerAndroid.open({
+          hour: 14,
+          minute: 5,
+          // is24Hour: false
+        });
+        if(action !== TimePickerAndroid.dismissedAction){
+          this.setState({
+            pickTime: `${hour}:${minute}`
+          });
+        }
+      }
+    } catch (e){
+      alert(e);
+    }
+  }
+
+  // 显示浮层提示
+  showToast(){
+    ToastAndroid.show('我是一只小小小鸟', 10 * Math.random());
+  }
+
   componentDidMount(){
+    const _that = this;
+    // 获取最近的图片
     CameraRoll.getPhotos({
       first: 10,
       // groupTypes: "All",
@@ -202,6 +330,17 @@ export default class APIComponent extends Component{
     }).catch((err) => {
       alert("失败"+ err);
     });
+
+    // 使用requestAnimationFrame动画效果
+    function progressAnimation() {
+      _that.setState({
+        width: _that.state.width + 1,
+      });
+      if(_that.state.width < 300){
+        requestAnimationFrame(progressAnimation);
+      }
+    }
+    requestAnimationFrame(progressAnimation);
   }
 
   // 保存图片
@@ -261,6 +400,7 @@ const css = StyleSheet.create({
     paddingTop: 20,
     borderTopWidth: 1,
     borderStyle: 'solid',
+    // position: 'relative',
   },
   postContainer: {
     position: 'relative',
@@ -275,5 +415,59 @@ const css = StyleSheet.create({
     top: 10,
     right: 10,
     color: '#663',
+  },
+  progressContainer: {
+    width: '100%',
+    height: 3,
+    backgroundColor: '#eee',
+    marginTop: 20,
+    marginBottom: 20,
+    borderRadius: 1,
+  },
+  progress: {
+    width: 10,
+    height: 3,
+    backgroundColor: '#306',
+    borderRadius: 1,
+  },
+  fadeAnimElement: {
+    width: 100,
+    height: 100,
+    backgroundColor: '#663',
+  },
+  shareContainer: {
+    width: '100%',
+    height: 40,
+    backgroundColor: '#663',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    borderRadius: 2,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 10,
+      height: 10,
+    },
+    shadowRadius: 1,
+    shadowOpacity: 1,
+    elevation: 20,
+  },
+  shareIcon: {
+    marginLeft: 10,
+    color: "#fff",
+  },
+  shareText: {
+    // width: 50,
+    color: '#fff'
+  },
+  pickerItem: {
+    backgroundColor: '#eee',
+    height: 38,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    borderRadius: 2,
   },
 });

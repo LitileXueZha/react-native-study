@@ -64,4 +64,58 @@ const styles = StyleSheet.create({
 // });
 import APIComponent from './APIs';
 // import SearchComponent from './searchExample'
-AppRegistry.registerComponent('Hello', () => APIComponent);
+// import MenuListComponent from './MenuListComponent';
+
+// 使用可复用组件MenuListComponent
+// 定义数据模型
+const data = {
+  "Language": {
+    "IconName": "location",
+    "All": ["All"],
+    "Front-end": ["Html", "Css", "JavaScript"],
+    "Web Server": ["Php", "Node.js", "Python", "Jsp", "Asp"],
+  },
+  "Tools": {
+    "IconName": "facebook",
+    "All": ["All"],
+    "MacOS": ["Xcode"],
+    "Windows": ["WebStorm", "Sublime", "DreamViewer"],
+    "Linux": ["Atom", "Vim"],
+  },
+};
+class ExampleComponent extends Component{
+  render(){
+    return <MenuListComponent
+      data={ data }
+      nSelected={ 1 }
+      tabSelected={ 0 }
+      click={ this.onPress }
+    />;
+  }
+
+  // 响应组件二级菜单点击事件
+  onPress(s){
+    alert(`你选择的是：${s}`);
+  }
+}
+
+import CalendarComponent from './CalendarComponent';
+class Example2Component extends Component{
+  render(){
+    return (
+      <CalendarComponent
+        touchEvent={ this.press }
+        holiday={{ '3-8': '妇女节', '5-4': '青年节', '9-10': '教师节', '11-11': '光棍节' }}
+        num={10}
+        start={ new Date(2016,10,1) }
+      />
+    );
+  }
+
+  press(s){
+    alert("我得"+ s);
+  }
+}
+
+
+AppRegistry.registerComponent('Hello', () => Example2Component);
