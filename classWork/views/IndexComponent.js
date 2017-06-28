@@ -13,7 +13,6 @@ import {
   ScrollView,
   Text,
   TextInput,
-  AsyncStorage,
   BackHandler,
   Dimensions,
   LayoutAnimation,
@@ -35,7 +34,7 @@ const WIDTH = Dimensions.get('window').width,
       HALF_WHITE = 'rgba(255,255,255,0.5)',
       TOP_COLOR = '#FF3B50',
       BOTTOM_COLOR = '#FFB199',
-      HOST_NAME = 'www.ningtaostudy.cn';
+      HOST_NAME = '192.168.137.1';
 let touchY = 0;  //  用户触摸y轴方向
 let scrollOnce = 0;  //  解决多次点击bug
 let isTop = true;  //  是否为登陆界面
@@ -364,12 +363,12 @@ class LoginComponent extends Component{
 
       // 发送数据请求
       let url = `http://${HOST_NAME}/appClassWork/login.php`,
-        method = 'post',
-        headers = {
-          'Accept': 'application/text',
-          'Content-Type': 'multipart/form-data',
-        },
-        body = new FormData();
+          method = 'post',
+          headers = {
+            'Accept': 'application/text',
+            'Content-Type': 'multipart/form-data',
+          },
+          body = new FormData();
       body.append('username', this.state.username);
       body.append('password', this.state.password);
       fetch(url,{
@@ -380,7 +379,7 @@ class LoginComponent extends Component{
       .then((s) => s.text())
       .then((res) => {
         if(parseInt(res) === 1){
-          this.props.loginSuccess();
+          this.props.loginSuccess(this.state.username);
         } else {
           this.setState({
             message: res,

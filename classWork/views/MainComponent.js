@@ -1,12 +1,9 @@
 import React,{ Component } from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import SimpleLineIcon from 'react-native-vector-icons/SimpleLineIcons';
-import LinearGradient from 'react-native-linear-gradient';
 import Ripple from './../plugin/ripple';
 import {
   View,
-  Text,
-  ScrollView,
   StatusBar,
   StyleSheet,
   Dimensions,
@@ -40,7 +37,6 @@ export default class MainComponent extends Component{
       sizeSearch: new Animated.Value(0),
       sizeUser: new Animated.Value(0),
     };
-    StatusBar.setHidden(true);
   }
 
   render(){
@@ -85,9 +81,10 @@ export default class MainComponent extends Component{
 
     return (
       <View style={ css.container }>
+        <StatusBar hidden={true}/>
         { this.state.isSearch ? <SearchLostComponent colors={ TH_8 }/> : null }
         { this.state.isAdd ? <AddFoundComponent colors={ TH_4 }/> : null }
-        { this.state.isUser ? <UserComponent colors={ TH_6 } logout={ this.props.logout }/> : null }
+        { this.state.isUser ? <UserComponent colors={ TH_6 } logout={ this.props.logout } /> : null }
 
         {/*  下面是导航栏  */}
         <View style={ css.nav }>
@@ -238,7 +235,6 @@ const css = StyleSheet.create({
     zIndex: 999,
     width: '100%',
     padding: 20,
-    paddingTop: 0,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',

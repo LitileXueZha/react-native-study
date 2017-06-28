@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   AsyncStorage,
   Alert,
-  LayoutAnimation,
 } from 'react-native';
 import Orientation from 'react-native-orientation';
 
@@ -60,12 +59,13 @@ export default class StartComponent extends Component{
   }
 
   //  登陆成功
-  loginSuccess(){
+  loginSuccess(name){
     this.setState({
       showMain: true,
       showIndex: false,
     });
     AsyncStorage.setItem('hasLogin', 'true');
+    AsyncStorage.setItem('username', name);
   }
 
   //  注销
@@ -78,8 +78,6 @@ export default class StartComponent extends Component{
         {
           text: '钮',
           onPress: () => {
-            StatusBar.setHidden(false, true);
-            StatusBar.setBackgroundColor('#FF3B50');
             AsyncStorage.setItem('hasLogin', 'false', (err) => {
               if(err){
                 alert('存储系统出现问题！请稍后重试');
