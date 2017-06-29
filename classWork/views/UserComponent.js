@@ -7,6 +7,7 @@ import {
   Text,
   TextInput,
   ScrollView,
+  Image,
   TouchableNativeFeedback,
   Switch,
   StyleSheet,
@@ -16,6 +17,8 @@ import {
   PixelRatio,
   LayoutAnimation,
   NativeModules,
+  CameraRoll,
+  BackHandler,
 } from 'react-native';
 
 const {UIManager} = NativeModules;
@@ -23,8 +26,8 @@ UIManager.setLayoutAnimationEnabledExperimental && UIManager.setLayoutAnimationE
 const WIDTH = Dimensions.get('window').width,
       HEIGHT =  Dimensions.get('window').height,
       ML = 1 / PixelRatio.get(),
-      CH = 38,
-      TH_6 = ['#667AA6', '#7CCFFA'];
+      TH_6 = ['#667AA6', '#7CCFFA'],
+      HOST_NAME = '192.168.137.1';
 
 
 export default class MainComponent extends Component{
@@ -42,6 +45,13 @@ export default class MainComponent extends Component{
       h_edit: 0,
       v_edit: 0,
       editMore: false,
+      picking: false,
+      editMsg: '',
+      email: '',
+      password: '',
+      photo: '',
+      signature: '',
+      pickedUri: '',
       showBug: false,
     };
   }
@@ -52,6 +62,18 @@ export default class MainComponent extends Component{
   }
 
   render(){
+    BackHandler.addEventListener('hardwareBackPress', () => {
+      if(this.state.showEdit){
+        this.hiddenEdit();
+      }
+      if(this.state.showBug){
+        this.setState({
+          showBug: false,
+        });
+      }
+      return true;
+    });
+
     return (
       <LinearGradient colors={ TH_6 } start={{x: 0, y: 1}} end={{x:1, y: 0.5}} style={{height: HEIGHT}}>
         <View style={{height: HEIGHT-80}}>
@@ -93,7 +115,7 @@ export default class MainComponent extends Component{
               </Ripple>
             </View>
             <View style={ css.row }>
-              <Ripple rippleColor='#fff' rippleOpacity={0.1} rippleDuration={2000} style={ css.item }>
+              <Ripple onPress={()=> this.setState({showBug: true})} rippleColor='#fff' rippleOpacity={0.1} rippleDuration={2000} style={ css.item }>
                 <Icon name='ios-bug-outline' size={30} style={ css.icon }/>
                 <Text style={{color: '#fff'}}>bug的出现</Text>
               </Ripple>
@@ -105,20 +127,49 @@ export default class MainComponent extends Component{
           </ScrollView>
         </View>
 
+        {/*  修改资料界面  */}
         <View style={[ edit.container,{left:this.state.l_edit,top:this.state.t_edit,width:this.state.w_edit,height:this.state.h_edit,elevation:this.state.v_edit} ]}>
+          { this.state.PickPhotoComponent }
+
           <View style={ edit.profile }>
-            <View style={ edit.imgContainer }><Text>1</Text></View>
+            <LinearGradient colors={TH_6} style={{position: 'relative'}}>
+              <TouchableNativeFeedback onPress={()=> this.pickPhoto()}>
+                { this.state.pickedUri ?
+                  <Image source={{uri:this.state.pickedUri}} style={ edit.imgContainer }/>
+                  :
+                  <View style={ edit.imgContainer }>
+                    <Icon name='ios-add-circle-outline' size={20} color='#fff'/>
+                    <Text style={{color: '#fff',fontSize:10}}>添加图片</Text>
+                  </View>
+                }
+              </TouchableNativeFeedback>
+            </LinearGradient>
             <View style={ edit.inputsContainer }>
               <View style={ edit.inputContainer }>
                 <Icon name='ios-at-outline' size={15} color={TH_6[0]} style={ edit.icon }/>
-                <TextInput underlineColorAndroid='transparent' style={ edit.input }/>
+                <TextInput
+                  underlineColorAndroid='transparent'
+                  selectionColor='#fff'
+                  returnKeyType='next'
+                  keyboardType='email-address'
+                  placeholder={this.state.email}
+                  placeholderTextColor='#ddd'
+                  onChangeText={this.validateEmail.bind(this)}
+                  onFocus={() => this.setState({editMsg: ''})}
+                  style={ edit.input }/>
               </View>
               <View style={ edit.inputContainer }>
                 <Icon name='ios-lock-outline' size={15} color={TH_6[0]} style={ edit.icon }/>
-                <TextInput underlineColorAndroid='transparent' style={ edit.input }/>
+                <TextInput
+                  underlineColorAndroid='transparent'
+                  selectionColor='#fff'
+                  onChangeText={(s)=> this.state.password = s}
+                  placeholder={this.state.password}
+                  placeholderTextColor='#ddd'
+                  style={ edit.input }/>
               </View>
               <View style={ edit.moreChoice }>
-                <Text style={{color: TH_6[0]}}>Edit more</Text>
+                <Text style={{color: TH_6[0]}}>修改更多</Text>
                 <Switch
                   thumbTintColor={TH_6[1]}
                   tintColor='#eee'
@@ -131,7 +182,7 @@ export default class MainComponent extends Component{
           { this.state.editMore ?
             <View style={ edit.moreTitle }>
               <Icon name='ios-flame-outline' size={20} color={TH_6[0]} style={{marginRight:5}}/>
-              <Text style={{color:TH_6[0]}}>Write down your favourite signature!</Text>
+              <Text style={{color:TH_6[0]}}>编辑你的个性签名</Text>
             </View>
             : null
           }
@@ -140,37 +191,52 @@ export default class MainComponent extends Component{
               <TextInput
                 underlineColorAndroid='transparent'
                 multiline={true}
-                placeholder='Input here'
-                placeholderTextColor={TH_6[0]}
+                placeholder={this.state.signature?this.state.signature:'输入...'}
+                placeholderTextColor='#ddd'
                 selectionColor={TH_6[0]}
-                style={ edit.moreInput }/>
+                style={ edit.moreInput }
+                onChangeText={(s)=> this.state.signature = s}
+              />
             </View>
             : null
           }
+          <Text style={ edit.msg }>{this.state.editMsg}</Text>
           <View style={ edit.btnContainer }>
             <TouchableNativeFeedback onPress={()=> this.hiddenEdit()}>
               <View style={ edit.btn }><Text style={{color: TH_6[0]}}>取消</Text></View>
             </TouchableNativeFeedback>
-            <TouchableNativeFeedback>
+            <TouchableNativeFeedback onPress={()=> this.edit()}>
               <View style={[ edit.btn, {backgroundColor: TH_6[0], marginLeft: 20} ]}><Text style={{color: '#fff'}}>修改</Text></View>
             </TouchableNativeFeedback>
           </View>
         </View>
+
+        {/*  提交bug界面  */}
+        { this.state.showBug ? <BugComponent hidden={()=> this.setState({showBug: false})}/> : null }
       </LinearGradient>
     );
   }
 
   getUserInfo(){
+    this.setState({
+      editMsg: ''
+    });
     AsyncStorage.getItem('username', (err, res) => {
       if(err){
         alert('存储系统出错，请退出重试');
       } else {
         let url = `http://192.168.137.1/appClassWork/info.php?username=${res}`;
         fetch(url)
-        .then((s)=>s.json())
+        .then((s)=>s.text())
         .then((respond) => {
+          respond = JSON.parse(respond);
           this.setState({
             username: res,
+            email: respond.email,
+            pickedUri: respond.photo ? `http://${HOST_NAME}/appClassWork/img/${respond.photo}?s=${Math.random()}` : false,
+            password: respond.password,
+            signature: respond.signature === 'null' ? '' : respond.signature,
+            editMore: !!(this.state.signature),
           });
           //  最后一个更新完的隐藏刷新条
           let last = respond.losts > respond.founds;
@@ -227,17 +293,21 @@ export default class MainComponent extends Component{
   showEdit(){
     LayoutAnimation.easeInEaseOut();
     this.setState({
+      showEdit: true,
       l_edit: 20,
       t_edit: 60,
       w_edit: WIDTH-40,
       h_edit: HEIGHT-160,
       v_edit: 20,
+      editMore: false,
+      editMsg: '',
     });
   }
 
   hiddenEdit(){
     LayoutAnimation.easeInEaseOut();
     this.setState({
+      showEdit: false,
       l_edit: 20+(WIDTH-80)/4,
       t_edit: 60+(HEIGHT-160)/2,
       w_edit: 0,
@@ -247,9 +317,155 @@ export default class MainComponent extends Component{
   }
 
   editMore(val){
+    LayoutAnimation.spring();
     this.setState({
       editMore: !this.state.editMore,
     });
+  }
+
+  pickPhoto(){
+    if(this.state.PickPhotoComponent){
+      this.setState({
+        PickPhotoComponent: null,
+      });
+    } else {
+      CameraRoll.getPhotos({
+        first: 9,
+        assetType: 'Photos',
+      })
+      .then((data) => {
+        let imgs = [];
+        for (let i=0;i<9;i++){
+          imgs.push(
+            <TouchableNativeFeedback key={i} onPress={() => this.setState({pickedUri: data.edges[i].node.image.uri, PickPhotoComponent: null})}>
+              <View><Image style={ edit.imgs } source={{uri:  data.edges[i].node.image.uri}}/></View>
+            </TouchableNativeFeedback>
+          );
+        }
+        this.setState({
+          PickPhotoComponent: <View style={ edit.imgsContainer }><Text style={ edit.imgsTitle }>最近的9张图</Text>{imgs}</View>,
+        });
+      })
+      .catch((err) => alert(err));
+    }
+  }
+
+  validateEmail(s){
+    let isNice = /[a-zA-Z\d_]+@[a-zA-Z\d]{2,6}\.[a-zA-Z]{1,5}/.test(s);
+    if(isNice){
+      this.state.email = s;
+    }
+    this.setState({
+      editMsg: isNice ? '' : '邮箱格式错误',
+    });
+  }
+
+  edit(){
+    if(!this.state.email && !this.state.email){
+      this.setState({
+        editMsg: 'email and password ?'
+      });
+    } else{
+      let url = `http://${HOST_NAME}/appClassWork/edit.php`,
+          method = 'post',
+          headers = {
+            'Accept': 'application/text',
+            'Content-Type': 'multipart/form-data',
+          },
+          body = new FormData();
+      body.append('username', this.state.username);
+      body.append('email', this.state.email);
+      body.append('password', this.state.password);
+      body.append('signature', this.state.signature);
+      body.append('photo', { uri: this.state.pickedUri, type: 'application/octet-stream', name: 'photo' });
+      fetch(url, {
+        method: method,
+        headers: headers,
+        body: body,
+      })
+      .then((s)=>s.text())
+      .then((res)=>{
+        this.setState({
+          editMsg: 'Modify success',
+        });
+      })
+      .catch((err)=>{
+        alert(err);
+      });
+    }
+  }
+}
+
+class BugComponent extends Component{
+  constructor(){
+    super();
+    this.state = {
+      content: '',
+      showSuccess: false,
+    };
+  }
+  render(){
+    return (
+      <View style={ bug.container }>
+        <Text style={ bug.title }>发现bug了 </Text>
+        <Ripple style={ [bug.closeBtn, {left: 0}] }>
+          <Icon name='ios-menu-outline' size={30} color={TH_6[0]}/>
+        </Ripple>
+        <Ripple style={ bug.closeBtn } onPress={ ()=> this.props.hidden() }>
+          <Icon name='ios-close' size={30} color={TH_6[0]} />
+        </Ripple>
+        <View style={ bug.inputContainer }>
+          <TextInput
+            multiline={true}
+            underlineColorAndroid='transparent'
+            selectionColor={TH_6[0]}
+            placeholder='有什么bug...'
+            placeholderTextColor='#ddd'
+            style={ bug.input }
+            ref='input'
+            onChangeText={(s)=>this.state.content = s}
+            onFocus={()=>this.setState({showSuccess: false})}
+          />
+        </View>
+        { this.state.showSuccess ? <Text style={{textAlign: 'right', color: TH_6[0]}}>非常感谢你的反馈！</Text> : null }
+        <TouchableNativeFeedback onPress={ ()=> this.submitBug() }>
+          <View style={ bug.submitBtn }>
+            <Text style={{color:'#fff',marginRight: 5 }}>提交</Text>
+            <Icon name='ios-finger-print' size={20} color="#fff"/>
+          </View>
+        </TouchableNativeFeedback>
+      </View>
+    );
+  }
+
+  submitBug(){
+    if(/^\s*$/.test(this.state.content)){
+      this.refs.input.focus();
+    } else {
+      let url = `http://${HOST_NAME}/appClassWork/bug.php`,
+          method = 'post',
+          headers = {
+            'Content-Type': 'multipart/form-data',
+          },
+          body = new FormData();
+      body.append('content', this.state.content);
+      fetch(url, {
+        method: method,
+        headers: headers,
+        body: body,
+      })
+      .then((s)=>s.text())
+      .then((res)=>{
+        this.refs.input.clear();
+        this.setState({
+          showSuccess: true,
+          content: '',
+        })
+      })
+      .catch((err)=>{
+        alert(err);
+      });
+    }
   }
 }
 
@@ -301,6 +517,42 @@ const edit = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 5,
   },
+  imgsContainer: {
+    width: WIDTH-80,
+    height: HEIGHT-200,
+    position: 'absolute',
+    left: 20,
+    top: 20,
+    zIndex: 9999,
+    backgroundColor: '#fff',
+    elevation: 20,
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  imgsTitle: {
+    color: '#fff',
+    width: '100%',
+    height: (HEIGHT-200)-(WIDTH+10),
+    lineHeight: 20,
+    paddingTop: ((HEIGHT-200)-(WIDTH+10)-20)/2,
+    textAlign: 'center',
+    backgroundColor: TH_6[0],
+  },
+  imgs: {
+    width: 90,
+    height: 120,
+    marginTop: (WIDTH-350)/4,
+    marginLeft: (WIDTH-350)/4,
+  },
+  msg: {
+    padding: 20,
+    paddingTop: 60,
+    color: TH_6[1],
+    fontSize: 12,
+    textAlign: 'center',
+  },
+
   btnContainer: {
     display: 'flex',
     padding: 20,
@@ -324,7 +576,10 @@ const edit = StyleSheet.create({
   imgContainer: {
     width: 90,
     height: 120,
-    backgroundColor: 'yellow',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 2,
   },
   inputsContainer: {
     flex: 1,
@@ -387,5 +642,65 @@ const edit = StyleSheet.create({
     color: TH_6[0],
     height: '100%',
     textAlignVertical: 'top',
+  },
+});
+
+const bug = StyleSheet.create({
+  container: {
+    width: WIDTH,
+    height: HEIGHT-100,
+    backgroundColor: '#fff',
+    position: 'absolute',
+    top: 0.
+  },
+  closeBtn: {
+    width: 50,
+    height: 50,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bg: {
+    position: 'absolute',
+    top: 50,
+    left: 0,
+    margin: 20,
+    width: WIDTH-40,
+    height: WIDTH/360*425,
+  },
+  title: {
+    height: 50,
+    textAlign: 'center',
+    color: TH_6[0],
+    lineHeight: 35,
+  },
+  inputContainer: {
+    borderTopWidth: 1,
+    borderColor: TH_6[0],
+    borderStyle: 'solid',
+    width: WIDTH,
+    height: 200,
+    padding: 20,
+    position: 'relative',
+  },
+  input: {
+    color: TH_6[0],
+    padding: 0,
+    height: 120,
+    textAlignVertical: 'top',
+  },
+  submitBtn: {
+    width: WIDTH-20,
+    margin: 10,
+    height: 40,
+    borderRadius: 2,
+    backgroundColor: TH_6[0],
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

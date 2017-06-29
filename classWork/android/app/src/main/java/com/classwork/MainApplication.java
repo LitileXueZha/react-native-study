@@ -10,6 +10,7 @@ import com.facebook.soloader.SoLoader;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.BV.LinearGradient.LinearGradientPackage;
 import com.github.yamill.orientation.OrientationPackage;
+import com.lwansbrough.RCTCamera.RCTCameraPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +29,8 @@ public class MainApplication extends Application implements ReactApplication {
           new MainReactPackage(),
           new VectorIconsPackage(),
           new LinearGradientPackage(),
-          new OrientationPackage()
+          new OrientationPackage(),
+          new RCTCameraPackage()
       );
     }
   };
