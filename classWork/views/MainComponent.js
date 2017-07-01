@@ -30,9 +30,9 @@ export default class MainComponent extends Component{
   constructor(props){
     super(props);
     this.state = {
-      isAdd: false,
+      isAdd: true,
       isSearch: false,
-      isUser: true,
+      isUser: false,
       sizeAdd: new Animated.Value(0),
       sizeSearch: new Animated.Value(0),
       sizeUser: new Animated.Value(0),
@@ -82,8 +82,8 @@ export default class MainComponent extends Component{
     return (
       <View style={ css.container }>
         <StatusBar hidden={true}/>
-        { this.state.isSearch ? <SearchLostComponent colors={ TH_8 }/> : null }
         { this.state.isAdd ? <AddFoundComponent colors={ TH_4 }/> : null }
+        { this.state.isSearch ? <SearchLostComponent colors={ TH_8 }/> : null }
         { this.state.isUser ? <UserComponent colors={ TH_6 } logout={ this.props.logout } /> : null }
 
         {/*  下面是导航栏  */}

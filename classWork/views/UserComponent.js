@@ -9,6 +9,7 @@ import {
   ScrollView,
   Image,
   TouchableNativeFeedback,
+  TouchableOpacity,
   Switch,
   StyleSheet,
   Dimensions,
@@ -39,8 +40,8 @@ export default class MainComponent extends Component{
       founds: 0,
       losts: 0,
       showEdit: false,
-      l_edit: 20+(WIDTH-80)/4,
-      t_edit: 60+(HEIGHT-160)/2,
+      l_edit: 20+(WIDTH-20)/6,
+      t_edit: 220,
       w_edit: 0,
       h_edit: 0,
       v_edit: 0,
@@ -67,16 +68,22 @@ export default class MainComponent extends Component{
         this.hiddenEdit();
       }
       if(this.state.showBug){
-        this.setState({
-          showBug: false,
-        });
+        if(this.state.PickPhotoComponent) {
+          this.setState({
+            PickPhotoComponent: null,
+          });
+        } else {
+          this.setState({
+            showBug: false,
+          });
+        }
       }
       return true;
     });
 
     return (
       <LinearGradient colors={ TH_6 } start={{x: 0, y: 1}} end={{x:1, y: 0.5}} style={{height: HEIGHT}}>
-        <View style={{height: HEIGHT-80}}>
+        <View style={{height: HEIGHT-100}}>
           <ScrollView
             style={ css.container }
             showsVerticalScrollIndicator={false}
@@ -87,7 +94,18 @@ export default class MainComponent extends Component{
                 colors={TH_6}/>
             }
           >
-            <Text style={ css.userName }>(｡･∀･)ﾉﾞ嗨~   <Text style={{color: '#ffff00'}}>{ this.state.username }</Text></Text>
+            <View style={ css.header }>
+              <Image source={{uri: this.state.pickedUri}} style={ css.headerPhoto }/>
+              <Text style={{color: '#ff0',flex:1,paddingLeft:10}}>{ this.state.username }</Text>
+              <TouchableOpacity
+                activeOpacity={0.3}
+                style={ css.logout }
+                onPress={ () => this.props.logout() }
+              >
+                <Text style={{color: '#e00'}}>注销</Text>
+                <Icon name='ios-power' size={16} style={{color:'#e00',position:'relative',top:1}}/>
+              </TouchableOpacity>
+            </View>
             <View style={ css.row }>
               <Ripple rippleColor='#fff' rippleOpacity={0.1} rippleDuration={2000} style={ css.item }>
                 <Text style={ css.LFText }>{this.state.founds}</Text>
@@ -103,18 +121,6 @@ export default class MainComponent extends Component{
                 <Icon name='ios-color-palette-outline' size={30} style={ css.icon }/>
                 <Text style={{color: '#fff'}}>修改资料</Text>
               </Ripple>
-              <Ripple
-                rippleColor='#fff'
-                rippleOpacity={0.1}
-                rippleDuration={2000}
-                style={ css.item }
-                onPress={ () => this.props.logout() }
-              >
-                <Icon name='ios-power' size={30} style={[ css.icon, {color:'#ff0000'} ]}/>
-                <Text style={{color: '#ff0000'}}>退出登陆</Text>
-              </Ripple>
-            </View>
-            <View style={ css.row }>
               <Ripple onPress={()=> this.setState({showBug: true})} rippleColor='#fff' rippleOpacity={0.1} rippleDuration={2000} style={ css.item }>
                 <Icon name='ios-bug-outline' size={30} style={ css.icon }/>
                 <Text style={{color: '#fff'}}>bug的出现</Text>
@@ -239,9 +245,11 @@ export default class MainComponent extends Component{
             editMore: !!(this.state.signature),
           });
           //  最后一个更新完的隐藏刷新条
-          let last = respond.losts > respond.founds;
-          this.numberAnimation('losts', parseInt(respond.losts), !last);
-          this.numberAnimation('founds', parseInt(respond.founds), last);
+          let losts = parseInt(respond.losts),
+              founds = parseInt(respond.founds),
+              last = losts > founds;
+          this.numberAnimation('losts', losts, !last);
+          this.numberAnimation('founds', founds, last);
         })
         .catch((err) => {
           alert(err);
@@ -308,8 +316,8 @@ export default class MainComponent extends Component{
     LayoutAnimation.easeInEaseOut();
     this.setState({
       showEdit: false,
-      l_edit: 20+(WIDTH-80)/4,
-      t_edit: 60+(HEIGHT-160)/2,
+      l_edit: 20+(WIDTH-20)/6,
+      t_edit: 220,
       w_edit: 0,
       h_edit: 0,
       v_edit: 0,
@@ -474,17 +482,34 @@ const css = StyleSheet.create({
     width: WIDTH,
     height: HEIGHT-120,
   },
-  userName: {
-    color: '#fff',
-    textAlign: 'center',
-    margin: 20,
-    height: 20,
+  header: {
+    height: 60,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  headerPhoto: {
+    width: 50,
+    height: 50,
+    borderRadius: 50,
+  },
+  logout: {
+    width: 50,
+    height: 50,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   row: {
     display: 'flex',
     flexDirection: 'row',
     width: '100%',
-    height: (HEIGHT-160)/3,
+    height: 80,
+    paddingHorizontal: 20,
   },
   item: {
     flex: 1,
@@ -492,7 +517,7 @@ const css = StyleSheet.create({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 20,
+    // marginHorizontal: 20,
   },
   LFText: {
     color: '#fff',
@@ -702,5 +727,8 @@ const bug = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    position: 'absolute',
+    bottom: 20,
+    elevation: 10,
   },
 });
