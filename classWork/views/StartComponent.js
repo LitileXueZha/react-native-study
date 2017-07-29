@@ -30,9 +30,10 @@ export default class StartComponent extends Component{
       setTimeout(() => {
         this.setState({
           showMain: res === 'true',
-          showIndex: res === 'false',
+          showIndex: res === 'false' || !res,
           visible: false,
         });
+        // alert(this.state.showMain+'==='+this.state.showIndex);
       }, 1500);
     });
   }

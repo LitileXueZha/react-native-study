@@ -28,7 +28,7 @@ const WIDTH = Dimensions.get('window').width,
       HEIGHT =  Dimensions.get('window').height,
       ML = 1 / PixelRatio.get(),
       TH_6 = ['#667AA6', '#7CCFFA'],
-      HOST_NAME = '192.168.137.1';
+      HOST_NAME = 'www.ningtaostudy.cn';
 
 
 export default class MainComponent extends Component{
@@ -96,14 +96,14 @@ export default class MainComponent extends Component{
           >
             <View style={ css.header }>
               <Image source={{uri: this.state.pickedUri}} style={ css.headerPhoto }/>
-              <Text style={{color: '#ff0',flex:1,paddingLeft:10}}>{ this.state.username }</Text>
+              <Text style={{color: '#fff',flex:1,paddingLeft:10}}>{ this.state.username }</Text>
               <TouchableOpacity
                 activeOpacity={0.3}
                 style={ css.logout }
                 onPress={ () => this.props.logout() }
               >
-                <Text style={{color: '#e00'}}>注销</Text>
-                <Icon name='ios-power' size={16} style={{color:'#e00',position:'relative',top:1}}/>
+                <Text style={{color: '#fff'}}>注销</Text>
+                <Icon name='ios-power' size={16} style={{color:'#fff',position:'relative',top:1}}/>
               </TouchableOpacity>
             </View>
             <View style={ css.row }>
@@ -231,7 +231,7 @@ export default class MainComponent extends Component{
       if(err){
         alert('存储系统出错，请退出重试');
       } else {
-        let url = `http://192.168.137.1/appClassWork/info.php?username=${res}`;
+        let url = `http://${HOST_NAME}/appClassWork/info.php?username=${res}`;
         fetch(url)
         .then((s)=>s.text())
         .then((respond) => {

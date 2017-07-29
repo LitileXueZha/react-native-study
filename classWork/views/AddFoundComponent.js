@@ -27,7 +27,7 @@ const NAV_L = [10, WIDTH/3 + 10, WIDTH/3*2 + 10],
       SHORT_W = WIDTH/3*2 - 20,
       LONG_W = WIDTH - 20;
 let lastIndex = 0;
-const HOST_NAME = '192.168.137.1';
+const HOST_NAME = 'www.ningtaostudy.cn';
 
 export default class MainComponent extends Component{
   constructor(props){
@@ -290,12 +290,14 @@ export default class MainComponent extends Component{
         </ViewPagerAndroid>
 
         {/*  提交按钮  */}
-        <TouchableNativeFeedback onPress={ () => this.add() }>
-          <View style={ css.submitBtn }>
-            <Text style={{textAlign: 'left',flex:2}}>{this.state.msg}</Text>
-            <Text style={{color:'#fff',textAlign: 'right',flex:1}}>提交</Text>
-          </View>
-        </TouchableNativeFeedback>
+        <View style={ css.submitBtn }>
+          <Text style={{textAlign: 'left',flex:2}}>{this.state.msg}</Text>
+          <TouchableNativeFeedback onPress={ () => this.add() }>
+            <View style={{width: 70,height:40,alignItems:'center',justifyContent:'center'}}>
+              <Text style={{color:'#fff'}}>提交</Text>
+            </View>
+          </TouchableNativeFeedback>
+        </View>
       </LinearGradient>
     );
   }
@@ -710,7 +712,6 @@ const css = StyleSheet.create({
     bottom: 100,
     width: WIDTH-40,
     height: 40,
-    paddingHorizontal: 20,
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',

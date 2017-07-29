@@ -34,7 +34,7 @@ const WIDTH = Dimensions.get('window').width,
       HALF_WHITE = 'rgba(255,255,255,0.5)',
       TOP_COLOR = '#FF3B50',
       BOTTOM_COLOR = '#FFB199',
-      HOST_NAME = '192.168.137.1';
+      HOST_NAME = 'www.ningtaostudy.cn';
 let touchY = 0;  //  用户触摸y轴方向
 let scrollOnce = 0;  //  解决多次点击bug
 let isTop = true;  //  是否为登陆界面
@@ -608,6 +608,7 @@ class RegisterComponent extends Component{
       .then( (txt) => txt.text())
       .then( (txt) => {
         let isOk = !(txt === '这个邮箱被人用了-_-"');
+        console.log(txt, isOk, '这个邮箱被人用了-_-"');
         this.setState({
           validateEmail: isOk ? '' : txt,
         });
@@ -666,12 +667,18 @@ class RegisterComponent extends Component{
       })
       .then((txt) => txt.text())
       .then((txt) => {
-        this.setState({
-          [txt === '这个邮箱被人用了-_-"' ? 'validateEmail' : 'registerRespondText']: txt,
-          registerRespondContainer: {backgroundColor: 'transparent',elevation: 0},
-          registerRespondTextStyle: {color: '#fff'},
-          inputEditable: !(txt === '欢迎加入我们 ^_^'),
-        });
+        if(txt === '这个邮箱被人用了-_-"'){
+          this.setState({
+            validateEmail: txt,
+          });
+        } else {
+          this.setState({
+            registerRespondText: txt,
+            registerRespondContainer: {backgroundColor: 'transparent', elevation: 0},
+            registerRespondTextStyle: {color: '#fff'},
+            inputEditable: false,
+          });
+        }
         // if(txt === '这个邮箱被人用了-_-"'){
         //   this.setState({
         //     validateEmail: txt,

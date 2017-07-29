@@ -30,8 +30,8 @@ export default class MainComponent extends Component{
   constructor(props){
     super(props);
     this.state = {
-      isAdd: true,
-      isSearch: false,
+      isAdd: false,
+      isSearch: true,
       isUser: false,
       sizeAdd: new Animated.Value(0),
       sizeSearch: new Animated.Value(0),
